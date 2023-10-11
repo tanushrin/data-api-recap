@@ -12,7 +12,7 @@ Does it serve JSON? - Yes
 Does this API require authentication?
 (do I need to sign up to get an API key?  - Yes
 Do I need to pay?)
-What is the base URI? - https://api.openweathermap.org/
+What is the base URI? - "https://weather.lewagon.com"
 Which endpoints can I call? What data does it return?
 - 3 endpoints:
     1) Current weather and forecasts
@@ -21,9 +21,6 @@ Which endpoints can I call? What data does it return?
 
 
 '''
-BASE_URI = "https://weather.lewagon.com"
-#Example: https://weather.lewagon.com/geo/1.0/direct?q=Barcelona
-
 
 def search_city(query):
     '''
@@ -33,10 +30,18 @@ def search_city(query):
     url = "https://weather.lewagon.com/geo/1.0/direct?q="+query
     response = requests.get(url).json()
 
-    if len(response) !=0:
+    if len(response) == 0:
+        return None
+    if len(response) == 1:
         city = response[0]
         return city
-    return None
+    for i, city in enumerate(response):
+        print(f"{i + 1}. {city['name']}, {city['country']}")
+
+    index = int(input("Multiple matches found, which city did you mean?\n> ")) - 1
+
+    return response[index]
+
 
 def weather_forecast(lat, lon):
     '''Return a 5-day weather forecast for the city, given its latitude and longitude.'''
@@ -57,7 +62,11 @@ def main():
     '''Ask user for a city and display weather forecast'''
     query = input("City?\n> ")
     city = search_city(query)
-    weather_forecast(city['lat'], city['lon'])
+    if city:
+        forecasts = weather_forecast(city['lat'], city['lon'])
+        for forecast in forecasts:
+            max_temp = round(forecast['main']['temp_max'])
+            print(f"{forecast['dt_txt'][:10]}: {forecast['weather'][0]['main']} ({max_temp}°C)")
 
 if __name__ == '__main__':
     try:
